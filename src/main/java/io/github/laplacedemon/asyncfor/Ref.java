@@ -1,7 +1,7 @@
 package io.github.laplacedemon.asyncfor;
 
 public class Ref<T> {
-	public T value;
+	public volatile T value;
     
     public Ref(T t) {
         super();

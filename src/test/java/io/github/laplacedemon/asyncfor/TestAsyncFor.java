@@ -24,6 +24,7 @@ public class TestAsyncFor {
         });
         
         forloop.run();
+        
         Thread.sleep(100000000);
     }
 	
@@ -41,6 +42,7 @@ public class TestAsyncFor {
         });
         
         forloop.run();
+        
         Thread.sleep(100000000);
     }
 	
@@ -65,6 +67,7 @@ public class TestAsyncFor {
         });
         
         forloop.run();
+        
         Thread.sleep(100000000);
     }
     
@@ -92,11 +95,53 @@ public class TestAsyncFor {
     
     @Test
     public void testSyncLoop() throws InterruptedException  {
-    	// 栈会溢出
+    	// Synchronization method will not overflow
         Ref<Integer> x = new Ref<Integer>(0);
         AsyncFor.forloop((Self self)->{
             x.value++;
+            System.out.println("loop:" + x.value);
             AsyncFor.continueLoop(self);
         }).run();
+        
+        Thread.sleep(100000000);
+    }
+    
+    @Test
+    public void testAsyncForNestedLoop() throws InterruptedException  {
+        Ref<Integer> i = new Ref<Integer>(0);
+        
+        AsyncFor.forloop((Self self0) -> {
+            i.value++;
+            
+            if(i.value>=10) {
+                return;
+            }
+            
+            CompletableFuture.runAsync(() -> {
+                
+                Ref<Integer> j = new Ref<Integer>(0);
+                AsyncFor.forloop((Self self1)->{
+                    j.value++;
+                    CompletableFuture.runAsync(() -> {
+                        if(j.value>=10) {
+                            // loop
+                            AsyncFor.continueLoop(self0);
+                            return;
+                        }
+                        System.out.println(i.value + "*" +j.value + "=" + (i.value*j.value));
+                        AsyncFor.continueLoop(self1);
+                    });
+                }).run();
+            });
+        }).run();
+        
+        Thread.sleep(100000000);
+        /*
+        for(int i = 0;i<10;i++) {
+            for(int j = 0;j<10;j++) {
+                System.out.println(i + "*" +j);
+            }
+        }
+        */
     }
 }
